@@ -1,10 +1,10 @@
 package networking
 
 import (
+	"fmt"
+	"potato-bones/src/environment/entities"
 	"potato-bones/src/globals"
 	"potato-bones/src/utils"
-	"potato-bones/src/environment/entities"
-	"fmt"
 	"sync"
 )
 
@@ -106,6 +106,7 @@ func (lobby *Lobby) RemovePlayer(clientId clientID) {
 	delete(joinedLobbies, clientId)
 
 	if len(lobby.players) == 0 {
+		lobbyIdManager.Release(lobby.id)
 		delete(lobbies, lobby.id)
 	} else if lobby.host == clientId {
 		for newHost := range lobby.players {
