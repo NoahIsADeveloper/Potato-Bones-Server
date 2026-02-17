@@ -144,7 +144,6 @@ func (lobby *Lobby) GetClientData(clientId clientID) (*entities.Player, *utils.S
 	return player, sconn, nil
 }
 
-
 func (lobby *Lobby) SendPacketToAllUDP(packetId int, data []byte) {
 	lobby.mutex.RLock(); defer lobby.mutex.RUnlock()
 	for _, sconn := range(lobby.connections) {
