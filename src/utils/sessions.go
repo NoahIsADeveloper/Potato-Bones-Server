@@ -21,7 +21,7 @@ type SessionManager struct {
 }
 
 func generateID() string {
-	data := make([]byte, 16)
+	data := make([]byte, 8)
 	_, err := rand.Read(data)
 	if err != nil {
 		panic(err)
