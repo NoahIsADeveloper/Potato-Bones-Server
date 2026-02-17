@@ -13,6 +13,7 @@ var OnlySendTCP *bool
 var DebugShowOutgoing *bool
 var DebugShowIncoming *bool
 var DebugLobbyInfo *bool
+var DebugHideMovePacket *bool
 
 var MaxEntities *int
 var GameSpeed *float64

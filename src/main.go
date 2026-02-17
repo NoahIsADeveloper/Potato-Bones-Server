@@ -21,6 +21,7 @@ func parseFlags() {
 	globals.GameSpeed = flag.Float64("gamespeed", 1, "Game speed multiplier")
 	globals.DebugShowOutgoing = flag.Bool("debug-outgoing", false, "Print outgoing packets")
 	globals.DebugShowIncoming = flag.Bool("debug-incoming", false, "Print incoming packets")
+	globals.DebugHideMovePacket = flag.Bool("debug-hide-move", false, "Hides the move packet when printing incoming/outgoing packets")
 	globals.DebugLobbyInfo = flag.Bool("debug-lobby", false, "Print lobby updates")
 	globals.SessionLength = flag.Int("session-length", 1440, "How long before a session expires (in minutes)")
 	globals.OnlySendTCP = flag.Bool("only-send-tcp", false, "Always use TCP over UDP for outgoing packets")

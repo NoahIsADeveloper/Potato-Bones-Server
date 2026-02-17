@@ -77,12 +77,13 @@ func getLobbySyncData(lobby *Lobby) []byte {
 }
 
 func HandlePacket(sconn *utils.SafeConn, clientId clientID, packetId int, packetData []byte) error {
-	if *globals.DebugShowIncoming && packetId != CS_MOVE {
+
+	if *globals.DebugShowIncoming && (!*globals.DebugHideMovePacket && packetId != CS_MOVE) {
 		fmt.Printf("received packet id %d from client %d with data %v\n", packetId, clientId, packetData)
 	}
 
 	defer func() {
-		if *globals.DebugShowIncoming && packetId != CS_MOVE {
+		if *globals.DebugShowIncoming && (*globals.DebugHideMovePacket && packetId != CS_MOVE) {
 			fmt.Printf("finished handling incoming packet id %d from client %d\n", packetId, clientId)
 		}
 	}()
