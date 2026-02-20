@@ -161,7 +161,11 @@ func HandleUDPPacket(addr *net.UDPAddr, data []byte) {
 }
 
 func HandleTCPClient(conn net.Conn) error {
-	session := sessionManager.CreateSession()
+	session := sessionManager.CreateSession(
+		func() {
+			conn.Close()
+		},
+	)
 	sconn := utils.NewSafeConn(conn, session)
 	clientId, ok := clientIdManager.Get()
 	if !ok {

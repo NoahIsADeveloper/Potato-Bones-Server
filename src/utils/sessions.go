@@ -12,6 +12,7 @@ type Session struct {
 	ID string
 	CreatedAt time.Time
 	ExpiresAt time.Time
+	OnExpire func()
 }
 
 type SessionManager struct {
@@ -29,7 +30,7 @@ func generateID() string {
 	return hex.EncodeToString(data)
 }
 
-func (manager *SessionManager) CreateSession() *Session {
+func (manager *SessionManager) CreateSession(onExpire func()) *Session {
 	manager.mutex.Lock(); defer manager.mutex.Unlock()
 
 	id := generateID()
@@ -38,6 +39,7 @@ func (manager *SessionManager) CreateSession() *Session {
 		ID:        id,
 		CreatedAt: tick,
 		ExpiresAt: tick.Add(manager.duration),
+		OnExpire: onExpire,
 	}
 	manager.sessions[id] = session
 	return session
@@ -60,7 +62,7 @@ func (manager *SessionManager) KillSession(id string) {
 }
 
 func (manager *SessionManager) cleanupLoop() {
-	ticker := time.NewTicker(time.Minute)
+	ticker := time.NewTicker(time.Second * 30)
 	defer ticker.Stop()
 
 	for range ticker.C {
@@ -69,6 +71,7 @@ func (manager *SessionManager) cleanupLoop() {
 
 		for id, session := range manager.sessions {
 			if now.After(session.ExpiresAt) {
+				session.OnExpire()
 				delete(manager.sessions, id)
 			}
 		}

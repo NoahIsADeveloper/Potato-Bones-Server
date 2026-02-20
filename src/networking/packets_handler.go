@@ -62,6 +62,10 @@ func getPlayerSyncData(lobby *Lobby) []byte {
 	for clientId, player := range players {
 		datatypes.AppendVarInt(&data, int(clientId))
 		datatypes.AppendString(&data, player.GetName())
+
+		x, y, rot := player.GetPosition()
+		datatypes.AppendPosition(&data, x, y)
+		datatypes.AppendRotation(&data, rot)
 	}
 
 	return data

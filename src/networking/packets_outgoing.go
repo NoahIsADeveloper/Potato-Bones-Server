@@ -84,7 +84,7 @@ func scSyncLobby(sconn *utils.SafeConn, clientId clientID) error {
 func scSyncEntireLobby(lobby *Lobby) error {
 	data := []byte{0x01}
 	data = append(data, getLobbySyncData(lobby)...)
-	lobby.SendPacketToAllTCP(SC_SYNC_PLAYER, data)
+	lobby.SendPacketToAllTCP(SC_SYNC_LOBBY, data)
 	return nil
 }
 
@@ -122,7 +122,7 @@ func scJoinAccept(sconn *utils.SafeConn, clientId clientID, lobby *Lobby) error 
 func scJoinDeny(sconn *utils.SafeConn, reason string) error {
 	var data []byte
 	datatypes.AppendString(&data, reason)
-	return sconn.SendPacketTCP(SC_LOBBY_JOIN_ACCEPT, data)
+	return sconn.SendPacketTCP(SC_LOBBY_JOIN_DENY, data)
 }
 
 func scKickPlayer(sconn *utils.SafeConn, reason string) error {
