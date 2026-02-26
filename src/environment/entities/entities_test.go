@@ -5,6 +5,8 @@ import (
 )
 
 func TestEntityMove(t *testing.T) {
+	t.Helper()
+
 	entity := NewEntity()
 
 	entity.Move(100, 200, 1.5)
@@ -16,6 +18,8 @@ func TestEntityMove(t *testing.T) {
 }
 
 func TestEntityInRange(t *testing.T) {
+	t.Helper()
+
 	entity := NewEntity()
 	entity.Move(50, 50, 0)
 
