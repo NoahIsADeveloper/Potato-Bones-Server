@@ -1,7 +1,6 @@
 package grid
 
 import (
-	"potato-bones/src/utils"
 	"sync"
 )
 
@@ -27,37 +26,63 @@ func (grid *Grid) Raycast(
 	grid.mutex.RLock(); defer grid.mutex.RUnlock()
 
 	px, py := posX, posY
-	dx, dy := utils.Cos(rot), utils.Sin(rot)
-	sx, sy := utils.Abs(1 / dx), utils.Abs(1 / dy)
+	dx, dy := cos(rot), sin(rot)
 
-	steps := 0
+	if abs(dx) < 0.00001 {
+		dx = 0.00001
+	}
+	if abs(dy) < 0.00001 {
+		dy = 0.00001
+	}
 
-	for px >= 0 && py >= 0 && px < float32(grid.width - 1) && py < float32(grid.height - 1) {
-		if sx < sy {
-			px += dx
+	sx := abs(1 / dx)
+	sy := abs(1 / dy)
+
+	stepX := sign(dx)
+	stepY := sign(dy)
+
+	var tx, ty float32
+	if dx > 0 {
+		tx = (ceil(px) - px) * sx
+	} else {
+		tx = (px - floor(px)) * sx
+	}
+
+	if dy > 0 {
+		ty = (ceil(py) - py) * sy
+	} else {
+		ty = (py - floor(py)) * sy
+	}
+
+	totalDist := float32(0)
+
+	for px >= 0 && py >= 0 && px < float32(grid.width) && py < float32(grid.height) {
+		cellX := uint16(floor(px))
+		cellY := uint16(floor(py))
+
+		if cellX < grid.width && cellY < grid.height {
+			cell := &grid.cells[cellX][cellY]
+			if cell.HasCollider() {
+				return true, cell
+			}
+		}
+
+		if dist > 0 && totalDist >= dist {
+			break
+		}
+
+		if tx < ty {
+			px += stepX
+			totalDist += sx
+			tx += sx
 		} else {
-			py += dy
+			py += stepY
+			totalDist += sy
+			ty += sy
 		}
-
-		cell := grid.GetCell(uint16(px), uint16(py))
-		if cell.HasCollider() {
-			return true, cell
-		}
-
-		steps++
 	}
 
 	return false, NewCell(0, 0)
-}
-
-func Sign(num float32) float32 {
-	if num > 0 {
-		return 1
-	} else if num < 0 {
-		return -1
-	} else {
-		return 0
-	}
 }
 
 func generateCells(sizeX uint16, sizeY uint16) [][]Cell {
