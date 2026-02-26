@@ -1,0 +1,91 @@
+package grid
+
+var pi float32 = 3.14159265358979323846
+var twoPi float32 = 2 * pi
+var halfPi float32 = pi / 2
+
+func abs(x float32) float32 {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+func sign(x float32) float32 {
+	if x > 0 {
+		return 1
+	}
+	if x < 0 {
+		return -1
+	}
+	return 0
+}
+
+func normalizeAngle(x float32) float32 {
+	for x > pi {
+		x -= twoPi
+	}
+	for x < -pi {
+		x += twoPi
+	}
+	return x
+}
+
+func sin(x float32) float32 {
+	x = normalizeAngle(x)
+
+	x2 := x * x
+	x3 := x2 * x
+	x5 := x3 * x2
+	x7 := x5 * x2
+
+	return x - x3/6 + x5/120 - x7/5040
+}
+
+func cos(x float32) float32 {
+	x = normalizeAngle(x)
+
+	x2 := x * x
+	x4 := x2 * x2
+	x6 := x4 * x2
+
+	return 1 - x2/2 + x4/24 - x6/720
+}
+
+func tan(x float32) float32 {
+	c := cos(x)
+
+	if abs(c) < 0.00001 {
+		return sign(sin(x)) * 1e9
+	}
+
+	return sin(x) / c
+}
+
+// rounding
+func floor(x float32) float32 {
+	i := int(x)
+
+	if float32(i) > x {
+		return float32(i - 1)
+	}
+
+	return float32(i)
+}
+
+func ceil(x float32) float32 {
+	i := int(x)
+
+	if float32(i) < x {
+		return float32(i + 1)
+	}
+
+	return float32(i)
+}
+
+func round(x float32) float32 {
+	if x >= 0 {
+		return floor(x + 0.5)
+	}
+	return ceil(x - 0.5)
+}
