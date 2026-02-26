@@ -1,93 +1,62 @@
 package grid
 
 import (
-	"math"
+	"potato-bones/src/utils"
 	"sync"
 )
 
 type Grid struct {
 	cells [][]Cell
+	cellSize uint8
 	rotation float32
 	mutex sync.RWMutex
+	width uint16
+	height uint16
 }
 
-func (grid *Grid) GetCell(x uint16, y uint16) Cell {
+func (grid *Grid) GetCell(x uint16, y uint16) *Cell {
 	grid.mutex.RLock(); defer grid.mutex.RUnlock()
-	return grid.cells[x][y]
+	return &grid.cells[x][y]
 }
 
+// If dist is -1 then assume raycast is infinite
 func (grid *Grid) Raycast(
-	posX float64, posY float64,
-	dirX float64, dirY float64,
-) Cell {
-	grid.mutex.RLock()
-	defer grid.mutex.RUnlock()
+	posX float32, posY float32,
+	rot float32, dist float32,
+) (bool, *Cell) {
+	grid.mutex.RLock(); defer grid.mutex.RUnlock()
 
-	mapX := int(posX)
-	mapY := int(posY)
+	px, py := posX, posY
+	dx, dy := utils.Cos(rot), utils.Sin(rot)
+	sx, sy := utils.Abs(1 / dx), utils.Abs(1 / dy)
 
-	if dirX == 0 {
-		dirX = 1e-6
-	}
-	if dirY == 0 {
-		dirY = 1e-6
-	}
+	steps := 0
 
-	deltaDistX := math.Abs(1 / dirX)
-	deltaDistY := math.Abs(1 / dirY)
-
-	var stepX, stepY int
-	var sideDistX, sideDistY float64
-
-	if dirX < 0 {
-		stepX = -1
-		sideDistX = (posX - float64(mapX)) * deltaDistX
-	} else {
-		stepX = 1
-		sideDistX = (float64(mapX+1) - posX) * deltaDistX
-	}
-
-	if dirY < 0 {
-		stepY = -1
-		sideDistY = (posY - float64(mapY)) * deltaDistY
-	} else {
-		stepY = 1
-		sideDistY = (float64(mapY+1) - posY) * deltaDistY
-	}
-
-	sizeX := len(grid.cells)
-	sizeY := len(grid.cells[0])
-	var side int // 0 = x, 1 = y
-
-	for {
-		if sideDistX < sideDistY {
-			mapX += stepX
-			sideDistX += deltaDistX
-			side = 0
+	for px >= 0 && py >= 0 && px < float32(grid.width - 1) && py < float32(grid.height - 1) {
+		if sx < sy {
+			px += dx
 		} else {
-			mapY += stepY
-			sideDistY += deltaDistY
-			side = 1
+			py += dy
 		}
 
-		if mapX < 0 || mapX >= sizeX || mapY < 0 || mapY >= sizeY {
-			return Cell{}
+		cell := grid.GetCell(uint16(px), uint16(py))
+		if cell.HasCollider() {
+			return true, cell
 		}
 
-		cell := grid.cells[mapX][mapY]
+		steps++
+	}
 
-		var hitX, hitY float64
-		if side == 0 {
-			hitX = float64(mapX)
-			hitY = posY + dirY*(sideDistX-deltaDistX)
-		} else {
-			hitX = posX + dirX*(sideDistY-deltaDistY)
-			hitY = float64(mapY)
-		}
+	return false, NewCell(0, 0)
+}
 
-		if cell.Raycast(hitX, hitY, dirX, dirY) {
-			return cell
-		}
+func Sign(num float32) float32 {
+	if num > 0 {
+		return 1
+	} else if num < 0 {
+		return -1
+	} else {
+		return 0
 	}
 }
 
@@ -99,7 +68,7 @@ func generateCells(sizeX uint16, sizeY uint16) [][]Cell {
 		cells[x] = make([]Cell, sizeY)
         var y uint16
 		for y = range sizeY {
-			cells[x][y] = *NewCell()
+			cells[x][y] = *NewCell(x, y)
 		}
     }
 
@@ -109,6 +78,9 @@ func generateCells(sizeX uint16, sizeY uint16) [][]Cell {
 func NewGrid(sizeX uint16, sizeY uint16) *Grid {
 	grid := &Grid{
 		cells: generateCells(sizeX, sizeY),
+		cellSize: 50,
+		width: sizeX,
+		height: sizeY,
 	}
 
 	return grid
