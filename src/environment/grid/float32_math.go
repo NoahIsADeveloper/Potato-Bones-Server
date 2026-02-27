@@ -91,12 +91,29 @@ func round(x float32) float32 {
 	return ceil(x - 0.5)
 }
 
-func toRad(rot int16) float32 {
+func toRad(rot uint16) float32 {
 	rot = rot % 360
-	if rot < 0 { rot = -rot }
 
 	n := float32(rot) / 360
 	n *= twoPi
 
 	return n
+}
+
+func toDeg(rot float32) uint16 {
+	if rot < 0 { rot = -rot }
+	rot = mod(rot, twoPi)
+
+	n := rot / twoPi
+	n *= 360
+
+	return uint16(n)
+}
+
+func mod(a float32, b float32) float32 {
+	for a >= b {
+		a = a - b
+	}
+
+	return a
 }
