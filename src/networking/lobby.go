@@ -81,7 +81,11 @@ func (lobby *Lobby) AddPlayer(clientId clientID, name string, sconn *utils.SafeC
 	_, ok := joinedLobbies[clientId]
 	if ok {
 		lobby.mutex.Unlock();
-		return fmt.Errorf("cannot add client %d as player %s they are already in a lobby", clientId, name)
+		return fmt.Errorf("cannot add client %d \"%s\" as they are already in a lobby", clientId, name)
+	}
+
+	if len(name) > 20 {
+		return fmt.Errorf("cannot add client %d as username \"%s\" is too long", clientId, name)
 	}
 
 	lobby.players[clientId] = entities.NewPlayer(name)
