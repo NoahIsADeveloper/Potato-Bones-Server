@@ -3,6 +3,7 @@ package grid
 var pi float32 = 3.14159265358979323846
 var twoPi float32 = 2 * pi
 var halfPi float32 = pi / 2
+var epsilon float32 = 0.00001
 
 func abs(x float32) float32 {
 	if x < 0 {
@@ -88,4 +89,14 @@ func round(x float32) float32 {
 		return floor(x + 0.5)
 	}
 	return ceil(x - 0.5)
+}
+
+func toRad(rot int16) float32 {
+	rot = rot % 360
+	if rot < 0 { rot = -rot }
+
+	n := float32(rot) / 360
+	n *= twoPi
+
+	return n
 }
