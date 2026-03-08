@@ -1,9 +1,13 @@
 package grid
 
+import "math"
+
 var pi float32 = 3.14159265358979323846
 var twoPi float32 = 2 * pi
 var halfPi float32 = pi / 2
 var epsilon float32 = 0.00001
+
+var maxFloat32 float32 = math.MaxFloat32
 
 func abs(x float32) float32 {
 	if x < 0 {
