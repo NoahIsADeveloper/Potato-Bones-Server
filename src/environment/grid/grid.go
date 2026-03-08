@@ -18,7 +18,6 @@ func (grid *Grid) GetCell(x uint16, y uint16) *Cell {
 	return &grid.cells[x][y]
 }
 
-// If dist is -1 then assume raycast is infinite
 func (grid *Grid) Raycast(
 	posX float32, posY float32,
 	rot float32, dist float32,
@@ -28,12 +27,8 @@ func (grid *Grid) Raycast(
 	px, py := posX, posY
 	dx, dy := cos(rot), sin(rot)
 
-	if abs(dx) < 0.00001 {
-		dx = 0.00001
-	}
-	if abs(dy) < 0.00001 {
-		dy = 0.00001
-	}
+	if abs(dx) < epsilon { dx = epsilon }
+	if abs(dy) < epsilon { dy = epsilon }
 
 	sx := abs(1 / dx)
 	sy := abs(1 / dy)

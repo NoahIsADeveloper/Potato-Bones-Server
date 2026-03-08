@@ -4,6 +4,28 @@ import (
 	"testing"
 )
 
+func TestCellRaycast(t *testing.T) {
+	t.Helper()
+
+	cell := NewCell(0, 0)
+	cell.AddCollisionPoint(0, 0)
+	cell.AddCollisionPoint(0, 255)
+
+	success, result := cell.Raycast(127, 127, toRad(90), 10)
+
+	if !success {
+		t.Errorf("Cell raycast failed: %v", success)
+	}
+
+	if success && (result.normal != toRad(270)) {
+		t.Errorf("Cell raycast incorrect normal: %v", result.normal)
+	}
+
+	if success && (result.hitX != 127 || result.hitY != 255) {
+		t.Errorf("Cell raycast incorrect position: %d, %d", result.hitX, result.hitY)
+	}
+}
+
 func TestGridCreation(t *testing.T) {
 	t.Helper()
 
@@ -58,7 +80,7 @@ func TestGridRaycast(t *testing.T) {
 		t.Errorf("TargetCell (50, 55) failed: got (%d, %d)", targetCell.x, targetCell.y)
 	}
 
-	success, hitCell := grid.Raycast(50.5, 50.5, pi / 2, -1)
+	success, hitCell := grid.Raycast(50.5, 50.5, toRad(90), -1)
 
 	if !success {
 		t.Errorf("Raycast failed: %v", success)
@@ -95,9 +117,7 @@ func TestRaycastDiagonalHit(t *testing.T) {
 	target := grid.GetCell(70, 70)
 	target.AddCollisionPoint(0, 255)
 
-	angle := pi / 4
-
-	success, hit := grid.Raycast(50, 50, angle, -1)
+	success, hit := grid.Raycast(50, 50, toRad(45), -1)
 
 	if !success {
 		t.Errorf("Diagonal raycast failed to hit")
