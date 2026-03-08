@@ -54,7 +54,7 @@ func (grid *Grid) Raycast(
 		ty = (py - floor(py)) * sy
 	}
 
-	totalDist := float32(0)
+	var totalDist float32 = 0
 
 	for px >= 0 && py >= 0 && px < float32(grid.width) && py < float32(grid.height) {
 		cellX := uint16(floor(px))
