@@ -2,8 +2,6 @@
 
 package grid
 
-import "fmt"
-
 type Cell struct {
 	x uint16
 	y uint16
@@ -11,28 +9,56 @@ type Cell struct {
 }
 
 type RaycastResult struct {
-	hitX uint8
-	hitY uint8
+	hit Vector2
 	normal float32
 }
 
 func (cell *Cell) Raycast(
-	rayX uint8, rayY uint8,
-	rot float32, dist uint8,
+	rayX uint8, rayY uint8, rot float32,
 ) (bool, RaycastResult) {
 	if !cell.HasCollider() { return false, RaycastResult{} }
 	collider := cell.GetCollider()
 
+	dx, dy := cos(rot), sin(rot)
+
+	a := Vector2{x: float32(rayX), y: float32(rayY)}
+	b := Vector2{x: dx * 255, y: dy * 255}
+	r := b.Sub(a)
+
+	var position Vector2
+	var best float32 = maxFloat32
+	hit := false
+
 	for index, pos := range collider {
 		if index % 4 != 0 { continue }
 
-		startX, startY := pos / 255, collider[index + 1] / 255
-		endX, endY := collider[index + 2] / 255, collider[index + 3] / 255
+		startX, startY := pos, collider[index + 1]
+		endX, endY := collider[index + 2], collider[index + 3]
 
-		fmt.Printf("Line 1: (%d, %d)\nLine 2: (%d, %d)\n", startX, startY, endX, endY)
+		c := Vector2{x: float32(startX), y: float32(startY)}
+		d := Vector2{x: float32(endX), y: float32(endY)}
+
+		s := d.Sub(c)
+		v := r.x * s.y - r.y * s.x
+
+		u := ((c.x - a.x) * r.y - (c.y - a.y) * r.x) / v
+		t := ((c.x - a.x) * s.y - (c.y - a.y) * s.x) / v
+
+		// if a is to the left of s then get left side perpendicular vector of s
+		// if a is to the right of s then get right side perpendicular vector of s
+
+		if (t < best) {
+			position = r.Mul(t).Add(a)
+		}
+
+		if (0 <= u && u <= 1 && 0 <= t && t <= 1) {
+			hit = true
+		}
 	}
 
-	return true, RaycastResult{}
+	return hit, RaycastResult{
+		hit: position,
+	}
 }
 
 func (cell *Cell) HasCollider() bool {

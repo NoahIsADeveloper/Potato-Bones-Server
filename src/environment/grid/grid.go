@@ -57,7 +57,10 @@ func (grid *Grid) Raycast(
 
 		if cellX < grid.width && cellY < grid.height {
 			cell := &grid.cells[cellX][cellY]
-			if cell.HasCollider() {
+			x := uint8(mod(px, float32(grid.cellSize)) / float32(grid.cellSize) * 255)
+			y := uint8(mod(py, float32(grid.cellSize)) / float32(grid.cellSize) * 255)
+			success, _ := cell.Raycast(x, y, rot)
+			if success {
 				return true, cell
 			}
 		}

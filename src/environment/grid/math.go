@@ -9,11 +9,52 @@ var epsilon float32 = 0.00001
 
 var maxFloat32 float32 = math.MaxFloat32
 
+type Vector2 struct {
+	x float32
+	y float32
+}
+
+func (a Vector2) Sub(b Vector2) (Vector2) {
+	return Vector2{
+		x: a.x - b.x,
+		y: a.y - b.y,
+	}
+}
+
+func (a Vector2) Add(b Vector2) (Vector2) {
+	return Vector2{
+		x: a.x + b.x,
+		y: a.y + b.y,
+	}
+}
+
+func (a Vector2) Mul(v float32) (Vector2) {
+	return Vector2{
+		x: a.x * v,
+		y: a.y * v,
+	}
+}
+
+func (a Vector2) Div(v float32) (Vector2) {
+	return Vector2{
+		x: a.x / v,
+		y: a.y / v,
+	}
+}
+
+func (a Vector2) Dot(b Vector2) (float32) {
+	return a.x * b.x + a.y * b.y
+}
+
 func abs(x float32) float32 {
 	if x < 0 {
 		return -x
 	}
 	return x
+}
+
+func atan2(y float32, x float32) float32 {
+	return float32(math.Atan2(float64(y), float64(x)))
 }
 
 func sign(x float32) float32 {
