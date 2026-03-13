@@ -26,9 +26,11 @@ func (cell *Cell) Raycast(
 	r := b.Sub(a)
 
 	var position Vector2
+	var normal float32
 	var best float32 = maxFloat32
 	hit := false
 
+	// TODO: Better variable names
 	for index, pos := range collider {
 		if index % 4 != 0 { continue }
 
@@ -39,16 +41,21 @@ func (cell *Cell) Raycast(
 		d := Vector2{x: float32(endX), y: float32(endY)}
 
 		s := d.Sub(c)
-		v := r.x * s.y - r.y * s.x
+		v := r.Cross(s)
 
-		u := ((c.x - a.x) * r.y - (c.y - a.y) * r.x) / v
-		t := ((c.x - a.x) * s.y - (c.y - a.y) * s.x) / v
+		j := c.Sub(a)
 
-		// if a is to the left of s then get left side perpendicular vector of s
-		// if a is to the right of s then get right side perpendicular vector of s
+		u := j.Cross(r) / v
+		t := j.Cross(s) / v
 
 		if (t < best) {
 			position = r.Mul(t).Add(a)
+
+			if (s.Dot(a) < 0) {
+				normal = atan2(-s.x, s.y)
+			} else {
+				normal = atan2(s.x, -s.y)
+			}
 		}
 
 		if (0 <= u && u <= 1 && 0 <= t && t <= 1) {
@@ -58,6 +65,7 @@ func (cell *Cell) Raycast(
 
 	return hit, RaycastResult{
 		hit: position,
+		normal: normal,
 	}
 }
 

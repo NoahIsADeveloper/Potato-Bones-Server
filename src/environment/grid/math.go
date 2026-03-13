@@ -35,6 +35,10 @@ func (a Vector2) Mul(v float32) (Vector2) {
 	}
 }
 
+func (a Vector2) Cross(b Vector2) (float32) {
+	return a.x * b.y - a.y * b.x
+}
+
 func (a Vector2) Div(v float32) (Vector2) {
 	return Vector2{
 		x: a.x / v,
