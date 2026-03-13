@@ -1,8 +1,4 @@
-// Positions are 0-1 where 0 is far left and 1 is far right
-
 package grid
-
-import "fmt"
 
 type Cell struct {
 	x uint16
@@ -10,29 +6,28 @@ type Cell struct {
 	collision []uint8
 }
 
-type RaycastResult struct {
+type CellRaycastResult struct {
 	hit Vector2
 	normal float32
 }
 
 func (cell *Cell) Raycast(
-	rayX uint8, rayY uint8, rot float32,
-) (bool, RaycastResult) {
-	if !cell.HasCollider() { return false, RaycastResult{} }
+	rayX uint8, rayY uint8,
+	rot float32, dist float32,
+) (bool, CellRaycastResult) {
+	if !cell.HasCollider() { return false, CellRaycastResult{} }
 	collider := cell.GetCollider()
 
 	dx, dy := cos(rot), sin(rot)
 
-	a := Vector2{x: float32(rayX), y: float32(rayY)}
-	r := Vector2{x: dx * 255, y: dy * 255}
+	rayStart := Vector2{x: float32(rayX) - dx * epsilon, y: float32(rayY) - dy * epsilon}
+	rayDirection := Vector2{x: dx, y: dy}.Mul(dist)
 
 	var position Vector2
 	var normal float32 = 0
 	var best float32 = 2
 	var hit bool = false
 
-	// TODO: Better variable names
-	// TODO: Fix skipping over collision borders
 	for index, pos := range collider {
 		if index % 2 != 0 { continue }
 		if index > len(collider) - 4 { break }
@@ -40,35 +35,37 @@ func (cell *Cell) Raycast(
 		startX, startY := pos, collider[index + 1]
 		endX, endY := collider[index + 2], collider[index + 3]
 
-		fmt.Printf("%d, %d / %d, %d\n", startX, startY, endX, endY)
+		segmentStart := Vector2{x: float32(startX), y: float32(startY)}
+		segmentEnd := Vector2{x: float32(endX), y: float32(endY)}
 
-		c := Vector2{x: float32(startX), y: float32(startY)}
-		d := Vector2{x: float32(endX), y: float32(endY)}
+		segmentDirection := segmentEnd.Sub(segmentStart)
 
-		s := d.Sub(c)
-		v := r.Cross(s)
+		v := rayDirection.Cross(segmentDirection)
+		if abs(v) < epsilon { continue }
+		j := segmentStart.Sub(rayStart)
 
-		j := c.Sub(a)
+		segmentScalar := j.Cross(rayDirection) / v
+		rayScalar := j.Cross(segmentDirection) / v
 
-		u := j.Cross(r) / v
-		t := j.Cross(s) / v
-
-		fmt.Println(t, best, r)
-		if (u > 0 && u <= 1 && t > 0 && t <= 1) {
+		if (segmentScalar > 0 && segmentScalar <= 1 && rayScalar > 0 && rayScalar <= 1) {
 			hit = true
 
-			if (t < best) {
+			if (rayScalar < best) {
+				best = rayScalar
 
-				best = t
+				// position = rayDirection.Mul(rayScalar).Add(rayStart)
+				position = segmentDirection.Mul(segmentScalar).Add(segmentStart)
 
-				// should be equal to s.Mul(u).Add(c)
-				position = r.Mul(t).Add(a)
+				// TODO: simplify
+				nx := -segmentDirection.y
+				ny := segmentDirection.x
 
-				if (s.Dot(a) < 0) {
-					normal = atan2(-s.x, s.y)
-				} else {
-					normal = atan2(s.x, -s.y)
+				if nx * rayDirection.x + ny * rayDirection.y > 0 {
+					nx = -nx
+					ny = -ny
 				}
+
+				normal = atan2(ny, nx)
 			}
 		}
 	}
@@ -77,8 +74,7 @@ func (cell *Cell) Raycast(
 		normal += 2 * pi;
 	}
 
-	fmt.Println("done", hit)
-	return hit, RaycastResult{
+	return hit, CellRaycastResult{
 		hit: position,
 		normal: normal,
 	}

@@ -1,8 +1,6 @@
 package grid
 
-import (
-	"sync"
-)
+import "sync"
 
 type Grid struct {
 	cells [][]Cell
@@ -13,6 +11,12 @@ type Grid struct {
 	height uint16
 }
 
+type GridRaycastResult struct {
+	cell *Cell
+	normal float32
+	position Vector2
+}
+
 func (grid *Grid) GetCell(x uint16, y uint16) *Cell {
 	grid.mutex.RLock(); defer grid.mutex.RUnlock()
 	return &grid.cells[x][y]
@@ -21,7 +25,7 @@ func (grid *Grid) GetCell(x uint16, y uint16) *Cell {
 func (grid *Grid) Raycast(
 	posX float32, posY float32,
 	rot float32, dist float32,
-) (bool, *Cell) {
+) (bool, GridRaycastResult) {
 	grid.mutex.RLock(); defer grid.mutex.RUnlock()
 
 	px, py := posX, posY
@@ -57,11 +61,38 @@ func (grid *Grid) Raycast(
 
 		if cellX < grid.width && cellY < grid.height {
 			cell := &grid.cells[cellX][cellY]
-			x := uint8(mod(px, float32(grid.cellSize)) / float32(grid.cellSize) * 255)
-			y := uint8(mod(py, float32(grid.cellSize)) / float32(grid.cellSize) * 255)
-			success, _ := cell.Raycast(x, y, rot)
+
+			var localX, localY uint8
+			if tx < ty {
+				if dx > 0 {
+					localX = 0
+				} else {
+					localX = 255
+				}
+				localY = uint8(mod(py, 1) * 255)
+			} else {
+				localX = uint8(mod(px, 1) * 255)
+				if dy > 0 {
+					localY = 0
+				} else {
+					localY = 255
+				}
+			}
+
+			cellDist := (dist - totalDist) * 255
+			if dist < 0 {
+				cellDist = 500
+			}
+			success, raycastResult := cell.Raycast(localX, localY, rot, cellDist)
 			if success {
-				return true, cell
+				return true, GridRaycastResult{
+					cell: cell,
+					normal: raycastResult.normal,
+					position: Vector2{
+						x: raycastResult.hit.x / 255 + float32(cellX),
+						y: raycastResult.hit.y / 255 + float32(cellY),
+					},
+				}
 			}
 		}
 
@@ -80,7 +111,7 @@ func (grid *Grid) Raycast(
 		}
 	}
 
-	return false, NewCell(0, 0)
+	return false, GridRaycastResult{}
 }
 
 func generateCells(sizeX uint16, sizeY uint16) [][]Cell {

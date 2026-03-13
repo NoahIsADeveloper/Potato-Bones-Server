@@ -14,6 +14,13 @@ type Vector2 struct {
 	y float32
 }
 
+func (a Vector2) Inverse() (Vector2) {
+	return Vector2{
+		x: -a.x,
+		y: -a.y,
+	}
+}
+
 func (a Vector2) Sub(b Vector2) (Vector2) {
 	return Vector2{
 		x: a.x - b.x,

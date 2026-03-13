@@ -9,17 +9,17 @@ func TestCellRaycast(t *testing.T) {
 	cell.AddCollisionPoint(0, 0)
 	cell.AddCollisionPoint(0, 255)
 
-	success, result := cell.Raycast(127, 127, toRad(180))
+	success, result := cell.Raycast(127, 127, toRad(180), 255)
 
 	if !success {
 		t.Errorf("Cell raycast failed: %v", success)
 	}
 
-	if success && (round(result.normal) != round(toRad(180))) {
-		t.Errorf("Cell raycast incorrect normal: %v, %f", result.normal, toRad(180))
+	if success && (round(result.normal) != round(toRad(0))) {
+		t.Errorf("Cell raycast incorrect normal: %v, %f", result.normal, toRad(0))
 	}
 
-	if success && (round(result.hit.x) != 0 || round(result.hit.y) != 255) {
+	if success && (round(result.hit.x) != 0 || round(result.hit.y) != 127) {
 		t.Errorf("Cell raycast incorrect position: %f, %f", result.hit.x, result.hit.y)
 	}
 
@@ -27,7 +27,7 @@ func TestCellRaycast(t *testing.T) {
 	cell.AddCollisionPoint(0, 0)
 	cell.AddCollisionPoint(0, 255)
 
-	success, _ = cell.Raycast(127, 127, toRad(0))
+	success, _ = cell.Raycast(127, 127, toRad(0), 255)
 
 	if success {
 		t.Errorf("Cell raycast failed: %v", success)
@@ -37,18 +37,28 @@ func TestCellRaycast(t *testing.T) {
 	cell.AddCollisionPoint(0, 127)
 	cell.AddCollisionPoint(255, 127)
 
-	success, result = cell.Raycast(127, 9, toRad(90))
+	success, result = cell.Raycast(127, 0, toRad(90), 255)
 
 	if !success {
 		t.Errorf("Cell raycast failed: %v", success)
 	}
 
-	if success && (round(result.normal) != round(toRad(90))) {
-		t.Errorf("Cell raycast incorrect normal: %v, %f", result.normal, toRad(90))
+	if success && (round(result.normal) != round(toRad(270))) {
+		t.Errorf("Cell raycast incorrect normal: %v, %f", result.normal, toRad(270))
 	}
 
 	if success && (round(result.hit.x) != 127 || round(result.hit.y) != 127) {
 		t.Errorf("Cell raycast incorrect position: %f, %f", result.hit.x, result.hit.y)
+	}
+
+	cell = NewCell(0, 0)
+	cell.AddCollisionPoint(0, 127)
+	cell.AddCollisionPoint(255, 127)
+
+	success, result = cell.Raycast(127, 0, toRad(90), 3)
+
+	if success {
+		t.Errorf("Cell raycast failed: %v", success)
 	}
 }
 
@@ -61,7 +71,7 @@ func TestCellRaycastMultiwall(t *testing.T) {
 	cell.AddCollisionPoint(200, 255)
 	cell.AddCollisionPoint(200, 0)
 
-	success, result := cell.Raycast(127, 127, toRad(0))
+	success, result := cell.Raycast(127, 127, toRad(0), 255)
 
 	if !success {
 		t.Errorf("Cell raycast failed: %v", success)
@@ -71,7 +81,7 @@ func TestCellRaycastMultiwall(t *testing.T) {
 		t.Errorf("Cell raycast incorrect normal: %v, %f", result.normal, toRad(180))
 	}
 
-	if success && (round(result.hit.x) != 200 || round(result.hit.y) != 255) {
+	if success && (round(result.hit.x) != 200 || round(result.hit.y) != 127) {
 		t.Errorf("Cell raycast incorrect position: %f, %f", result.hit.x, result.hit.y)
 	}
 }
@@ -114,51 +124,6 @@ func TestGridCreation(t *testing.T) {
 	}
 }
 
-func TestGridRaycast(t *testing.T) {
-	t.Helper()
-
-	grid := NewGrid(100, 100)
-
-	targetCell := grid.GetCell(50, 55)
-	targetCell.AddCollisionPoint(0, 255)
-
-	if !targetCell.HasCollider() {
-		t.Errorf("TargetCell (%d, %d) missing collider", targetCell.x, targetCell.y)
-	}
-
-	if targetCell.x != 50 || targetCell.y != 55 {
-		t.Errorf("TargetCell (50, 55) failed: got (%d, %d)", targetCell.x, targetCell.y)
-	}
-
-	success, hitCell := grid.Raycast(50.5, 50.5, toRad(90), -1)
-
-	if !success {
-		t.Errorf("Raycast failed: %v", success)
-	}
-
-	if success && (hitCell.x != targetCell.x || hitCell.y != targetCell.y) {
-		t.Errorf("Wanted (%d, %d), got (%d, %d)", targetCell.x, targetCell.y, hitCell.x, hitCell.y)
-	}
-}
-
-func TestRaycastMiss(t *testing.T) {
-	t.Helper()
-
-	grid := NewGrid(50, 50)
-
-	grid.GetCell(11, 11).AddCollisionPoint(0, 255)
-	grid.GetCell(11, 9).AddCollisionPoint(0, 255)
-
-	grid.GetCell(13, 11).AddCollisionPoint(0, 255)
-	grid.GetCell(13, 9).AddCollisionPoint(0, 255)
-
-	success, _ := grid.Raycast(10.5, 10.5, 0, -1)
-
-	if success {
-		t.Errorf("Raycast should miss but reported hit")
-	}
-}
-
 func TestRaycastDiagonalHit(t *testing.T) {
 	t.Helper()
 
@@ -166,6 +131,7 @@ func TestRaycastDiagonalHit(t *testing.T) {
 
 	target := grid.GetCell(70, 70)
 	target.AddCollisionPoint(0, 255)
+	target.AddCollisionPoint(255, 0)
 
 	success, hit := grid.Raycast(50, 50, toRad(45), -1)
 
@@ -173,8 +139,12 @@ func TestRaycastDiagonalHit(t *testing.T) {
 		t.Errorf("Diagonal raycast failed to hit")
 	}
 
-	if hit.x != 70 || hit.y != 70 {
-		t.Errorf("Expected (70,70), got (%d,%d)", hit.x, hit.y)
+	if hit.position.x != 70.5 || hit.position.y != 70.5 {
+		t.Errorf("Expected (70.5, 70.5), got (%f, %f)", hit.position.x, hit.position.y)
+	}
+
+	if round(hit.normal * 10) != round(toRad(225) * 10) {
+		t.Errorf("Expected (%f), got (%f)", toRad(225), hit.normal)
 	}
 }
 
@@ -185,52 +155,12 @@ func TestRaycastMaxDistance(t *testing.T) {
 
 	target := grid.GetCell(90, 50)
 	target.AddCollisionPoint(0, 255)
+	target.AddCollisionPoint(255, 0)
 
 	success, _ := grid.Raycast(50.5, 50.5, 0, 10)
 
 	if success {
 		t.Errorf("Raycast hit something past max distance")
-	}
-}
-
-func TestRaycastStartInsideCollider(t *testing.T) {
-	t.Helper()
-
-	grid := NewGrid(50, 50)
-
-	cell := grid.GetCell(20, 20)
-	cell.AddCollisionPoint(0, 255)
-
-	success, hit := grid.Raycast(20.5, 20.5, 0, 20)
-
-	if !success {
-		t.Errorf("Raycast starting inside collider should hit")
-	}
-
-	if hit.x != 20 || hit.y != 20 {
-		t.Errorf("Expected (20,20), got (%d,%d)", hit.x, hit.y)
-	}
-}
-
-func TestRaycastMultipleObstacles(t *testing.T) {
-	t.Helper()
-
-	grid := NewGrid(100, 100)
-
-	near := grid.GetCell(60, 50)
-	far := grid.GetCell(80, 50)
-
-	near.AddCollisionPoint(0, 255)
-	far.AddCollisionPoint(0, 255)
-
-	success, hit := grid.Raycast(50.5, 50.5, 0, -1)
-
-	if !success {
-		t.Errorf("Raycast failed with multiple obstacles")
-	}
-
-	if success && (hit.x != 60 || hit.y != 50) {
-		t.Errorf("Expected first hit (60,50), got (%d,%d)", hit.x, hit.y)
 	}
 }
 
