@@ -1,8 +1,6 @@
 package grid
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestCellRaycast(t *testing.T) {
 	t.Helper()
@@ -11,7 +9,7 @@ func TestCellRaycast(t *testing.T) {
 	cell.AddCollisionPoint(0, 0)
 	cell.AddCollisionPoint(0, 255)
 
-	success, result := cell.Raycast(127, 127, toRad(90))
+	success, result := cell.Raycast(127, 127, toRad(180))
 
 	if !success {
 		t.Errorf("Cell raycast failed: %v", success)
@@ -39,7 +37,7 @@ func TestCellRaycast(t *testing.T) {
 	cell.AddCollisionPoint(0, 127)
 	cell.AddCollisionPoint(255, 127)
 
-	success, result = cell.Raycast(127, 127, toRad(270))
+	success, result = cell.Raycast(127, 9, toRad(90))
 
 	if !success {
 		t.Errorf("Cell raycast failed: %v", success)
@@ -73,7 +71,7 @@ func TestCellRaycastMultiwall(t *testing.T) {
 		t.Errorf("Cell raycast incorrect normal: %v, %f", result.normal, toRad(180))
 	}
 
-	if success && (round(result.hit.x) != 0 || round(result.hit.y) != 255) {
+	if success && (round(result.hit.x) != 200 || round(result.hit.y) != 255) {
 		t.Errorf("Cell raycast incorrect position: %f, %f", result.hit.x, result.hit.y)
 	}
 }

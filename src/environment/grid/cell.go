@@ -2,6 +2,8 @@
 
 package grid
 
+import "fmt"
+
 type Cell struct {
 	x uint16
 	y uint16
@@ -22,20 +24,23 @@ func (cell *Cell) Raycast(
 	dx, dy := cos(rot), sin(rot)
 
 	a := Vector2{x: float32(rayX), y: float32(rayY)}
-	b := Vector2{x: dx * 255, y: dy * 255}
-	r := b.Sub(a)
+	r := Vector2{x: dx * 255, y: dy * 255}
 
 	var position Vector2
-	var normal float32
-	var best float32 = maxFloat32
-	hit := false
+	var normal float32 = 0
+	var best float32 = 2
+	var hit bool = false
 
 	// TODO: Better variable names
+	// TODO: Fix skipping over collision borders
 	for index, pos := range collider {
-		if index % 4 != 0 { continue }
+		if index % 2 != 0 { continue }
+		if index > len(collider) - 4 { break }
 
 		startX, startY := pos, collider[index + 1]
 		endX, endY := collider[index + 2], collider[index + 3]
+
+		fmt.Printf("%d, %d / %d, %d\n", startX, startY, endX, endY)
 
 		c := Vector2{x: float32(startX), y: float32(startY)}
 		d := Vector2{x: float32(endX), y: float32(endY)}
@@ -48,21 +53,31 @@ func (cell *Cell) Raycast(
 		u := j.Cross(r) / v
 		t := j.Cross(s) / v
 
-		if (t < best) {
-			position = r.Mul(t).Add(a)
-
-			if (s.Dot(a) < 0) {
-				normal = atan2(-s.x, s.y)
-			} else {
-				normal = atan2(s.x, -s.y)
-			}
-		}
-
-		if (0 <= u && u <= 1 && 0 <= t && t <= 1) {
+		fmt.Println(t, best, r)
+		if (u > 0 && u <= 1 && t > 0 && t <= 1) {
 			hit = true
+
+			if (t < best) {
+
+				best = t
+
+				// should be equal to s.Mul(u).Add(c)
+				position = r.Mul(t).Add(a)
+
+				if (s.Dot(a) < 0) {
+					normal = atan2(-s.x, s.y)
+				} else {
+					normal = atan2(s.x, -s.y)
+				}
+			}
 		}
 	}
 
+	if (normal < 0) {
+		normal += 2 * pi;
+	}
+
+	fmt.Println("done", hit)
 	return hit, RaycastResult{
 		hit: position,
 		normal: normal,
