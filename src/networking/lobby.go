@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"potato-bones/src/environment/entities"
 	"potato-bones/src/globals"
-	"potato-bones/src/utils"
+	"potato-bones/src/utils/networking"
 	"sync"
 )
 

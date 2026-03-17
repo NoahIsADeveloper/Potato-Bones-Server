@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"potato-bones/src/globals"
 	"potato-bones/src/networking/datatypes"
-	"potato-bones/src/utils"
+	"potato-bones/src/utils/networking"
 )
 
 const (

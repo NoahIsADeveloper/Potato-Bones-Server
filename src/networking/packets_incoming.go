@@ -3,7 +3,7 @@ package networking
 import (
 	"fmt"
 	"potato-bones/src/networking/datatypes"
-	"potato-bones/src/utils"
+	"potato-bones/src/utils/networking"
 )
 
 func csLobbyJoin(sconn *utils.SafeConn, clientId clientID, packetData []byte) error {
