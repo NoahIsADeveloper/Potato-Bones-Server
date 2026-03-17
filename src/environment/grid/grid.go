@@ -1,6 +1,9 @@
 package grid
 
-import "sync"
+import (
+	"sync"
+	"potato-bones/src/utils/math"
+)
 
 type Grid struct {
 	cells [][]Cell
@@ -14,7 +17,7 @@ type Grid struct {
 type GridRaycastResult struct {
 	cell *Cell
 	normal float32
-	position Vector2
+	position math.Vector2
 }
 
 func (grid *Grid) GetCell(x uint16, y uint16) *Cell {
@@ -29,35 +32,35 @@ func (grid *Grid) Raycast(
 	grid.mutex.RLock(); defer grid.mutex.RUnlock()
 
 	px, py := posX, posY
-	dx, dy := cos(rot), sin(rot)
+	dx, dy := math.Cos(rot), math.Sin(rot)
 
-	if abs(dx) < epsilon { dx = epsilon }
-	if abs(dy) < epsilon { dy = epsilon }
+	if math.Abs(dx) < math.Epsilon { dx = math.Epsilon }
+	if math.Abs(dy) < math.Epsilon { dy = math.Epsilon }
 
-	sx := abs(1 / dx)
-	sy := abs(1 / dy)
+	sx := math.Abs(1 / dx)
+	sy := math.Abs(1 / dy)
 
-	stepX := sign(dx)
-	stepY := sign(dy)
+	stepX := math.Sign(dx)
+	stepY := math.Sign(dy)
 
 	var tx, ty float32
 	if dx > 0 {
-		tx = (ceil(px) - px) * sx
+		tx = (math.Ceil(px) - px) * sx
 	} else {
-		tx = (px - floor(px)) * sx
+		tx = (px - math.Floor(px)) * sx
 	}
 
 	if dy > 0 {
-		ty = (ceil(py) - py) * sy
+		ty = (math.Ceil(py) - py) * sy
 	} else {
-		ty = (py - floor(py)) * sy
+		ty = (py - math.Floor(py)) * sy
 	}
 
 	var totalDist float32 = 0
 
 	for px >= 0 && py >= 0 && px < float32(grid.width) && py < float32(grid.height) {
-		cellX := uint16(floor(px))
-		cellY := uint16(floor(py))
+		cellX := uint16(math.Floor(px))
+		cellY := uint16(math.Floor(py))
 
 		if cellX < grid.width && cellY < grid.height {
 			cell := &grid.cells[cellX][cellY]
@@ -69,9 +72,9 @@ func (grid *Grid) Raycast(
 				} else {
 					localX = 255
 				}
-				localY = uint8(mod(py, 1) * 255)
+				localY = uint8(math.Mod(py, 1) * 255)
 			} else {
-				localX = uint8(mod(px, 1) * 255)
+				localX = uint8(math.Mod(px, 1) * 255)
 				if dy > 0 {
 					localY = 0
 				} else {
@@ -79,19 +82,25 @@ func (grid *Grid) Raycast(
 				}
 			}
 
-			cellDist := (dist - totalDist) * 255
+			var cellDist float32
 			if dist < 0 {
-				cellDist = 500
+				cellDist = 10000
+			} else {
+				remainingDist := dist - totalDist
+				if remainingDist <= 0 {
+					break
+				}
+				cellDist = remainingDist * 255
 			}
 			success, raycastResult := cell.Raycast(localX, localY, rot, cellDist)
 			if success {
 				return true, GridRaycastResult{
 					cell: cell,
 					normal: raycastResult.normal,
-					position: Vector2{
-						x: raycastResult.hit.x / 255 + float32(cellX),
-						y: raycastResult.hit.y / 255 + float32(cellY),
-					},
+					position: math.NewVector2(
+						raycastResult.hit.X / 255 + float32(cellX),
+						raycastResult.hit.Y / 255 + float32(cellY),
+					),
 				}
 			}
 		}

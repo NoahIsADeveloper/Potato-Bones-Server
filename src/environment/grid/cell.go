@@ -1,5 +1,9 @@
 package grid
 
+import (
+	"potato-bones/src/utils/math"
+)
+
 type Cell struct {
 	x uint16
 	y uint16
@@ -7,7 +11,7 @@ type Cell struct {
 }
 
 type CellRaycastResult struct {
-	hit Vector2
+	hit math.Vector2
 	normal float32
 }
 
@@ -18,12 +22,12 @@ func (cell *Cell) Raycast(
 	if !cell.HasCollider() { return false, CellRaycastResult{} }
 	collider := cell.GetCollider()
 
-	dx, dy := cos(rot), sin(rot)
+	directionX, directionY := math.Cos(rot), math.Sin(rot)
 
-	rayStart := Vector2{x: float32(rayX) - dx * epsilon, y: float32(rayY) - dy * epsilon}
-	rayDirection := Vector2{x: dx, y: dy}.Mul(dist)
+	rayStart := math.NewVector2(float32(rayX) - directionX * math.Epsilon, float32(rayY) - directionY * math.Epsilon)
+	rayDelta := math.NewVector2(directionX, directionY).Mul(dist)
 
-	var position Vector2
+	var position math.Vector2
 	var normal float32 = 0
 	var best float32 = 2
 	var hit bool = false
@@ -35,17 +39,17 @@ func (cell *Cell) Raycast(
 		startX, startY := pos, collider[index + 1]
 		endX, endY := collider[index + 2], collider[index + 3]
 
-		segmentStart := Vector2{x: float32(startX), y: float32(startY)}
-		segmentEnd := Vector2{x: float32(endX), y: float32(endY)}
+		segmentStart := math.NewVector2(float32(startX), float32(startY))
+		segmentEnd := math.NewVector2(float32(endX), float32(endY))
 
-		segmentDirection := segmentEnd.Sub(segmentStart)
+		segmentDelta := segmentEnd.Sub(segmentStart)
 
-		v := rayDirection.Cross(segmentDirection)
-		if abs(v) < epsilon { continue }
-		j := segmentStart.Sub(rayStart)
+		scalarFactor := rayDelta.Cross(segmentDelta)
+		if math.Abs(scalarFactor) < math.Epsilon { continue } // Parallel
+		rayStartToSegmentStart := segmentStart.Sub(rayStart)
 
-		segmentScalar := j.Cross(rayDirection) / v
-		rayScalar := j.Cross(segmentDirection) / v
+		segmentScalar := rayStartToSegmentStart.Cross(rayDelta) / scalarFactor
+		rayScalar := rayStartToSegmentStart.Cross(segmentDelta) / scalarFactor
 
 		if (segmentScalar > 0 && segmentScalar <= 1 && rayScalar > 0 && rayScalar <= 1) {
 			hit = true
@@ -53,25 +57,22 @@ func (cell *Cell) Raycast(
 			if (rayScalar < best) {
 				best = rayScalar
 
-				// position = rayDirection.Mul(rayScalar).Add(rayStart)
-				position = segmentDirection.Mul(segmentScalar).Add(segmentStart)
+				// also equal to rayDelta.Mul(rayScalar).Add(rayStart)
+				position = segmentDelta.Mul(segmentScalar).Add(segmentStart)
 
-				// TODO: simplify
-				nx := -segmentDirection.y
-				ny := segmentDirection.x
+				normalVector := math.NewVector2(-segmentDelta.Y, segmentDelta.X)
 
-				if nx * rayDirection.x + ny * rayDirection.y > 0 {
-					nx = -nx
-					ny = -ny
+				if normalVector.Dot(rayDelta) > 0 {
+					normalVector = normalVector.Inverse()
 				}
 
-				normal = atan2(ny, nx)
+				normal = math.Atan2(normalVector.Y, normalVector.X)
 			}
 		}
 	}
 
 	if (normal < 0) {
-		normal += 2 * pi;
+		normal += 2 * math.Pi;
 	}
 
 	return hit, CellRaycastResult{

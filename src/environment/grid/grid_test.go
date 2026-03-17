@@ -1,6 +1,9 @@
 package grid
 
-import "testing"
+import (
+	"potato-bones/src/utils/math"
+	"testing"
+)
 
 func TestCellRaycast(t *testing.T) {
 	t.Helper()
@@ -9,25 +12,25 @@ func TestCellRaycast(t *testing.T) {
 	cell.AddCollisionPoint(0, 0)
 	cell.AddCollisionPoint(0, 255)
 
-	success, result := cell.Raycast(127, 127, toRad(180), 255)
+	success, result := cell.Raycast(127, 127, math.ToRad(180), 255)
 
 	if !success {
 		t.Errorf("Cell raycast failed: %v", success)
 	}
 
-	if success && (round(result.normal) != round(toRad(0))) {
-		t.Errorf("Cell raycast incorrect normal: %v, %f", result.normal, toRad(0))
+	if success && (math.Round(result.normal) != math.Round(math.ToRad(0))) {
+		t.Errorf("Cell raycast incorrect normal: %v, %f", result.normal, math.ToRad(0))
 	}
 
-	if success && (round(result.hit.x) != 0 || round(result.hit.y) != 127) {
-		t.Errorf("Cell raycast incorrect position: %f, %f", result.hit.x, result.hit.y)
+	if success && (math.Round(result.hit.X) != 0 || math.Round(result.hit.Y) != 127) {
+		t.Errorf("Cell raycast incorrect position: %f, %f", result.hit.X, result.hit.Y)
 	}
 
 	cell = NewCell(0, 0)
 	cell.AddCollisionPoint(0, 0)
 	cell.AddCollisionPoint(0, 255)
 
-	success, _ = cell.Raycast(127, 127, toRad(0), 255)
+	success, _ = cell.Raycast(127, 127, math.ToRad(0), 255)
 
 	if success {
 		t.Errorf("Cell raycast failed: %v", success)
@@ -37,25 +40,25 @@ func TestCellRaycast(t *testing.T) {
 	cell.AddCollisionPoint(0, 127)
 	cell.AddCollisionPoint(255, 127)
 
-	success, result = cell.Raycast(127, 0, toRad(90), 255)
+	success, result = cell.Raycast(127, 0, math.ToRad(90), 255)
 
 	if !success {
 		t.Errorf("Cell raycast failed: %v", success)
 	}
 
-	if success && (round(result.normal) != round(toRad(270))) {
-		t.Errorf("Cell raycast incorrect normal: %v, %f", result.normal, toRad(270))
+	if success && (math.Round(result.normal) != math.Round(math.ToRad(270))) {
+		t.Errorf("Cell raycast incorrect normal: %v, %f", result.normal, math.ToRad(270))
 	}
 
-	if success && (round(result.hit.x) != 127 || round(result.hit.y) != 127) {
-		t.Errorf("Cell raycast incorrect position: %f, %f", result.hit.x, result.hit.y)
+	if success && (math.Round(result.hit.X) != 127 || math.Round(result.hit.Y) != 127) {
+		t.Errorf("Cell raycast incorrect position: %f, %f", result.hit.X, result.hit.Y)
 	}
 
 	cell = NewCell(0, 0)
 	cell.AddCollisionPoint(0, 127)
 	cell.AddCollisionPoint(255, 127)
 
-	success, result = cell.Raycast(127, 0, toRad(90), 3)
+	success, result = cell.Raycast(127, 0, math.ToRad(90), 3)
 
 	if success {
 		t.Errorf("Cell raycast failed: %v", success)
@@ -71,18 +74,18 @@ func TestCellRaycastMultiwall(t *testing.T) {
 	cell.AddCollisionPoint(200, 255)
 	cell.AddCollisionPoint(200, 0)
 
-	success, result := cell.Raycast(127, 127, toRad(0), 255)
+	success, result := cell.Raycast(127, 127, math.ToRad(0), 255)
 
 	if !success {
 		t.Errorf("Cell raycast failed: %v", success)
 	}
 
-	if success && (round(result.normal) != round(toRad(180))) {
-		t.Errorf("Cell raycast incorrect normal: %v, %f", result.normal, toRad(180))
+	if success && (math.Round(result.normal) != math.Round(math.ToRad(180))) {
+		t.Errorf("Cell raycast incorrect normal: %v, %f", result.normal, math.ToRad(180))
 	}
 
-	if success && (round(result.hit.x) != 200 || round(result.hit.y) != 127) {
-		t.Errorf("Cell raycast incorrect position: %f, %f", result.hit.x, result.hit.y)
+	if success && (math.Round(result.hit.X) != 200 || math.Round(result.hit.Y) != 127) {
+		t.Errorf("Cell raycast incorrect position: %f, %f", result.hit.X, result.hit.Y)
 	}
 }
 
@@ -133,18 +136,18 @@ func TestRaycastDiagonalHit(t *testing.T) {
 	target.AddCollisionPoint(0, 255)
 	target.AddCollisionPoint(255, 0)
 
-	success, hit := grid.Raycast(50, 50, toRad(45), -1)
+	success, hit := grid.Raycast(50, 50, math.ToRad(45), -1)
 
 	if !success {
 		t.Errorf("Diagonal raycast failed to hit")
 	}
 
-	if hit.position.x != 70.5 || hit.position.y != 70.5 {
-		t.Errorf("Expected (70.5, 70.5), got (%f, %f)", hit.position.x, hit.position.y)
+	if hit.position.X != 70.5 || hit.position.Y != 70.5 {
+		t.Errorf("Expected (70.5, 70.5), got (%f, %f)", hit.position.X, hit.position.Y)
 	}
 
-	if round(hit.normal * 10) != round(toRad(225) * 10) {
-		t.Errorf("Expected (%f), got (%f)", toRad(225), hit.normal)
+	if math.Round(hit.normal * 10) != math.Round(math.ToRad(225) * 10) {
+		t.Errorf("Expected (%f), got (%f)", math.ToRad(225), hit.normal)
 	}
 }
 
@@ -169,7 +172,7 @@ func TestRaycastOutOfBounds(t *testing.T) {
 
 	grid := NewGrid(50, 50)
 
-	success, _ := grid.Raycast(25, 25, pi, -1)
+	success, _ := grid.Raycast(25, 25, math.Pi, -1)
 
 	if success {
 		t.Errorf("Raycast should not hit outside grid")
