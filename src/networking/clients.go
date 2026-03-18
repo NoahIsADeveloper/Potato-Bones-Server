@@ -106,7 +106,7 @@ func HandleUDPPacket(addr *net.UDPAddr, data []byte) {
 
 	var offset int = 0
 
-	// TODO errors here get voided right now after they get returned, please fixy :)
+	// TODO errors don't go up and are voided here. multiple times, actually.
 	sessionId, err := datatypes.ReadString(data, &offset)
 	if err != nil {
 		fmt.Printf("error reading session id %v\n", err)
