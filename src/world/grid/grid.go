@@ -1,8 +1,8 @@
 package grid
 
 import (
-	"sync"
 	"potato-bones/src/utils/math"
+	"sync"
 )
 
 type Grid struct {

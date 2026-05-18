@@ -2,9 +2,9 @@ package networking
 
 import (
 	"fmt"
-	"potato-bones/src/environment/entities"
 	"potato-bones/src/globals"
-	"potato-bones/src/utils/networking"
+	utils "potato-bones/src/utils/networking"
+	"potato-bones/src/world/entities"
 	"sync"
 )
 

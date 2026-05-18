@@ -1,34 +1,11 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"net"
 	"potato-bones/src/globals"
 	"potato-bones/src/networking"
 )
-
-func parseFlags() {
-	// Potatos are 4th most grown crop, and there's 206 bones in a human body!
-	globals.Port = flag.Int("port", 4206, "Port to run the server on")
-
-	globals.Host = flag.String("host", "0.0.0.0", "Host address to bind to")
-	globals.Tickrate = flag.Int("tickrate", 50, "Server update rate (in miliseconds)")
-	globals.MaxEntities = flag.Int("max-entities", 255, "Max Entities per environment")
-	globals.MaxClients = flag.Int("max-clients", 255, "Max Clients per environment")
-	globals.MaxLobbies = flag.Int("max-lobbies", 3, "Max Lobbies")
-	globals.MaxPacketSize = flag.Int("max-packet-size", 1024, "Max incoming packet size in bytes")
-	globals.GameSpeed = flag.Float64("gamespeed", 1, "Game speed multiplier")
-	globals.DebugShowOutgoing = flag.Bool("debug-outgoing", false, "Print outgoing packets")
-	globals.DebugShowIncoming = flag.Bool("debug-incoming", false, "Print incoming packets")
-	globals.DebugHideMovePacket = flag.Bool("debug-hide-move", false, "Hides the move packet when printing incoming/outgoing packets")
-	globals.DebugLobbyInfo = flag.Bool("debug-lobby", false, "Print lobby updates")
-	globals.SessionLength = flag.Int("session-length", 1440, "How long before a session expires (in minutes)")
-	globals.OnlySendTCP = flag.Bool("only-send-tcp", false, "Always use TCP over UDP for outgoing packets")
-	globals.OnlyReadTCP = flag.Bool("only-read-tcp", false, "Disables the UDP server")
-
-	flag.Parse()
-}
 
 func HandleTCPServer() {
 	ln, err := net.Listen("tcp", *globals.Host + ":" + fmt.Sprint(*globals.Port))
@@ -79,10 +56,9 @@ func StartServers() {
 
 
 func main() {
-    parseFlags()
+    globals.ParseFlags()
     fmt.Println("Starting servers...")
     StartServers()
 
-	// haha loser
     select {}
 }
