@@ -1,7 +1,11 @@
 package grid
 
 import (
+	"fmt"
+	"potato-bones/src/globals"
+	"potato-bones/src/utils/files"
 	"potato-bones/src/utils/math"
+	"strings"
 	"sync"
 )
 
@@ -136,6 +140,57 @@ func generateCells(sizeX uint16, sizeY uint16) [][]Cell {
     }
 
 	return cells
+}
+
+func LoadGridFromMap(name string) (*Grid, error) {
+	mapPath := *globals.MapPath + name + ".pbmap"
+	if !files.FileExists(mapPath) {
+		return nil, fmt.Errorf("map file does not exist: %s", mapPath)
+	}
+
+	data, err := files.ReadFile(mapPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read map file: %w", err)
+	}
+
+	mapData := strings.Split(string(data), "\n")
+
+	// PASS 1: Get dependencies
+	for index, line := range mapData {
+		if !strings.HasSuffix(line, ";") && !strings.HasSuffix(line, ":") {
+			if index == 1 {
+				if line != globals.Version {
+					var errString = fmt.Sprintf("map version mismatch: got %s, expected %s", line, globals.Version)
+
+					if *globals.ErrorOnVersionMismatch {
+						return nil, fmt.Errorf("%s", errString)
+					} else {
+						fmt.Printf("%s", errString)
+					}
+				}
+			}
+			if index == 2 { continue }
+			if line == "" { continue }
+			if strings.HasSuffix(line, ":") { continue }
+			if strings.HasSuffix(line, ";") { continue }
+
+			dependencyPath := *globals.TilesetPath + line + ".pbtile"
+			if !files.FileExists(dependencyPath) {
+				return nil, fmt.Errorf("tileset %s does not exist: %s", line, dependencyPath)
+			}
+			tilesetData, err := files.ReadFile(dependencyPath)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read tileset file: %w", err)
+			}
+			tilesetLines := strings.Split(string(tilesetData), "\n")
+
+			// parse tileset
+		}
+	}
+
+	grid := NewGrid(100, 100)
+
+	return grid, nil
 }
 
 func NewGrid(sizeX uint16, sizeY uint16) *Grid {

@@ -2,12 +2,19 @@ package globals
 
 import "flag"
 
+// Constants
+const (
+	Version = "0-dev"
+)
+
 // Flags
 var Port *int
 var Host *string
 
 var Tickrate *int
 var SessionLength *int
+
+var ErrorOnVersionMismatch *bool
 
 var OnlyReadTCP *bool
 var OnlySendTCP *bool
@@ -23,6 +30,9 @@ var MaxClients *int
 var MaxLobbies *int
 
 var MaxPacketSize *int
+
+var MapPath *string
+var TilesetPath *string
 
 func ParseFlags() {
 	// Potatos are 4th most grown crop, and there's 206 bones in a human body!
@@ -42,6 +52,10 @@ func ParseFlags() {
 	SessionLength = flag.Int("session-length", 1440, "How long before a session expires (in minutes)")
 	OnlySendTCP = flag.Bool("only-send-tcp", false, "Always use TCP over UDP for outgoing packets")
 	OnlyReadTCP = flag.Bool("only-read-tcp", false, "Disables the UDP server")
+	ErrorOnVersionMismatch = flag.Bool("version-mismatch-error", true, "Errors on version mismatch")
+
+	MapPath = flag.String("map", "maps/", "Path to the map directory")
+	TilesetPath = flag.String("tileset", "tilesets/", "Path to the tileset directory")
 
 	flag.Parse()
 }
